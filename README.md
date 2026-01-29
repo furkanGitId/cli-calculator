@@ -625,5 +625,219 @@ For issues and questions:
 
 ---
 
+### **1\. Basic Docker Compose Commands**
+
+
+*   **Start services defined in `docker-compose.yml`:**
+    
+```bash
+docker-compose up
+```
+
+*   **Start in detached mode (background):**
+    
+```bash
+docker-compose up -d
+```
+
+*   **Stop services:**
+    
+
+```bash
+docker-compose down 
+```
+
+*   **Stop and remove all containers, networks, and volumes:**
+    
+
+```bash
+docker-compose down --volumes
+```
+
+*   **List running services/containers:**
+    
+
+```bash
+docker-compose ps
+```
+
+* * *
+
+### **2\. Viewing Logs**
+
+*   **View logs for all services:**
+    
+
+```bash
+docker-compose logs
+```
+
+*   **View logs with real-time updates:**
+    
+
+```bash
+docker-compose logs -f
+```
+
+*   **View logs for a specific service:**
+    
+
+```bash
+docker-compose logs -f <service_name> 
+```
+
+*   **Limit log output to last N lines:**
+    
+
+```bash
+docker-compose logs --tail=50 <service_name> 
+```
+
+* * *
+
+### **3\. Accessing Shell in a Container**
+
+*   **Open a shell inside a running service:**
+    
+```bash
+docker-compose exec <service_name> sh
+```
+
+*   **If the container has bash:**
+    
+```bash
+docker-compose exec <service_name> bash
+```
+
+*   **Run a one-time command in a service container:**
+
+```bash
+docker-compose run <service_name> <command>
+```
+
+Example:
+```bash
+docker-compose run web ls -l
+```
+
+* * *
+
+### **4\. Advanced Docker Compose Commands**
+
+*   **Rebuild images before starting (useful if Dockerfile changed):**
+    
+```bash
+docker-compose up --build
+```
+
+*   **Stop and remove containers, networks, and rebuild:**
+    
+```bash
+docker-compose down --rmi all --volumes --remove-orphans
+```
+
+*   **Run services with a specific profile (if defined in `docker-compose.yml`):**
+
+```bash
+docker-compose --profile <profile_name> up
+```
+
+*   **Override environment variables (without editing yml):**
+
+```bash
+docker-compose run -e ENV_VAR=value <service_name> <command>
+```
+
+* * *
+
+### **5\. Health Check**
+
+*   **Define health check in `docker-compose.yml`:**
+    
+```bash
+services:
+  web:
+    image: nginx
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+```
+      
+*   **Check container health status:**
+    
+```bash
+docker ps
+```
+
+Look under the **STATUS** column for `healthy` or `unhealthy`.
+
+*   **Inspect health check in detail:**
+  
+```bash
+docker inspect --format='{{json .State.Health}}' <container_id>
+```    
+
+*   **Watch logs for health check events:**
+
+```bash
+docker-compose logs -f <service_name>
+```
+
+* * *
+
+### **6\. Miscellaneous Useful Commands**
+
+*   **List all images created by Compose:**
+    
+```bash
+docker-compose images
+```
+
+*   **Remove stopped containers:**
+    
+```bash
+docker-compose rm
+```
+
+*   **Run command on all services:**
+
+```bash
+docker-compose run --rm <service_name> <command>
+```
+
+# Docker Compose Command Reference
+
+This table organizes common Docker Compose commands by category, providing the command syntax and a brief description or example of its use.
+
+| Category | Command | Description / Example |
+| :--- | :--- | :--- |
+| **Start Services** | `docker-compose up` | Start services in the foreground. |
+| | `docker-compose up -d` | Start services in detached mode (background). |
+| **Stop Services** | `docker-compose down` | Stop all services. |
+| | `docker-compose down --volumes` | Stop services and remove associated volumes (including anonymous volumes). |
+| **Rebuild Services** | `docker-compose up --build` | Rebuild images before starting the services. |
+| | `docker-compose down --rmi all --volumes --remove-orphans` | Clean everything (stop, remove images, volumes, and orphaned containers) and prepare for a fresh rebuild. |
+| **Service Status** | `docker-compose ps` | List running services and their container status. |
+| **Logs** | `docker-compose logs` | View logs for all services. |
+| | `docker-compose logs -f` | Follow logs in real time. |
+| | `docker-compose logs -f <service_name>` | Follow logs for a specific service. |
+| | `docker-compose logs --tail=50 <service_name>` | Show the last 50 lines of logs for a service. |
+| **Shell Access** | `docker-compose exec <service_name> sh` | Open a shell inside a running container. |
+| | `docker-compose exec <service_name> bash` | Open a bash shell if available inside the container. |
+| | `docker-compose run <service_name> <command>` | Run a one-time command in a container (e.g., a migration script). |
+| **Health Check (YML)** | `healthcheck: test: ["CMD","curl","-f","http://localhost"] interval: 30s timeout: 10s retries: 3` | Example YAML configuration to define a health check for a service. |
+| **Check Health Status** | `docker ps` | Shows container health under the `STATUS` column (e.g., `(healthy)` or `(unhealthy)`). |
+| | `docker inspect --format='{{json .State.Health}}' <container_id_or_name>` | Get detailed health check information for a specific container. |
+| **Profiles & Environment** | `docker-compose --profile <name> up` | Start services defined under a specific profile in the Compose file. |
+| | `docker-compose run -e ENV_VAR=value <service_name> <command>` | Override environment variables for a single run command. |
+| **Miscellaneous** | `docker-compose images` | List images created by Compose. |
+| | `docker-compose rm` | Remove stopped containers. |
+| | `docker-compose run --rm <service_name> <command>` | Run a command and automatically remove the container after execution. |
+
+
+---
+
 **Last Updated**: January 29, 2026
 **Version**: 1.0.0
