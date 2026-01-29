@@ -1,0 +1,98 @@
+
+version: '3.8'
+
+services:
+  # mssql:
+  #   image: mcr.microsoft.com/mssql/server:2022-latest
+  #   container_name: cli-calculator-mssql
+  #   environment:
+  #     ACCEPT_EULA: "Y"
+  #     SA_PASSWORD: "YourStrong!Passw0rd"
+  #     MSSQL_MEMORY_LIMIT_MB: "1024" # Keeps it small
+  #   ports:
+  #     - "1433:1433"
+  #   volumes:
+  #     - mssql-data:/var/opt/mssql
+  #   networks:
+  #     - calculator-network
+  #   restart: unless-stopped
+  #   # Use a TCP check instead of a heavy SQL query
+  #   healthcheck:
+  #     test: ["CMD", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'YourStrong!Passw0rd' -Q 'SELECT 1' -C"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 10
+  #     start_period: 30s
+
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: cli-calculator-mssql
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "YourStrong!Passw0rd"
+      MSSQL_MEMORY_LIMIT_MB: "1024"
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql-data:/var/opt/mssql
+    networks:
+      - calculator-network
+    restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/localhost/1433'"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
+
+  mssql-init:
+    image: mcr.microsoft.com/mssql-tools
+    container_name: cli-calculator-mssql-init
+    depends_on:
+      mssql:
+        condition: service_healthy
+    volumes:
+      - ./db:/db
+    entrypoint: >
+      /bin/bash -c "
+      /opt/mssql-tools/bin/sqlcmd
+      -S mssql
+      -U sa
+      -P YourStrong!Passw0rd
+      -i /db/calculation_history.sql
+      "
+    networks:
+      - calculator-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: dockerfile
+    container_name: cli-calculator-backend
+    ports:
+      - "8000:8000"
+    depends_on:
+      mssql:
+        condition: service_healthy
+    networks:
+      - calculator-network
+
+  frontend:
+    build:
+      context: ./frontend/cli-calculator-ui
+      dockerfile: dockerfile
+    container_name: cli-calculator-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - calculator-network
+
+networks:
+  calculator-network:
+    driver: bridge
+
+volumes:
+  mssql-data:
